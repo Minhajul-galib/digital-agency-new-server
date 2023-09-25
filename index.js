@@ -45,7 +45,13 @@ async function run() {
         const studentOrderTrackCollection = databseCollection.collection('StudentOrderTrack');
         const studentsCollection = databseCollection.collection('Students');
         const studentTrackCollection = databseCollection.collection('studentClassTrack');
-
+        const QuizCourseCollection = databseCollection.collection('QuizCourse');
+        const AssignmentCollection = databseCollection.collection('Assignment');
+        const StudentsInvoiceCollection = databseCollection.collection('StudentsInvoice');
+        const stuQuestionCollection = databseCollection.collection('studentQuestion');
+        const QuizMarksCollection = databseCollection.collection('QuizMarks');
+        const Courses202205Collection = databseCollection.collection('Courses202205');
+        const classBriefCollection = databseCollection.collection('classBrief');
 
 // USER!
         // USER!
@@ -333,6 +339,181 @@ async function run() {
             res.json(inserResult)
         })
 
+// CourseQuizQusetion!
+        // CourseQuizQusetion!
+
+        app.get('/QuizCourse', async (req, res)=>{
+            const QuizCourse = QuizCourseCollection.find({});
+            const AllQuiz = await QuizCourse.toArray();
+
+            res.send(AllQuiz);
+        })
+
+        app.post('/QuizCourse', async (req, res)=>{
+            const QuizCourse = req.body;
+            const sendQuizCourse = await QuizCourseCollection.insertOne(QuizCourse)
+
+            res.json(sendQuizCourse)
+        });
+
+
+        // Assignment
+        // Assignment
+
+        app.post('/Assignment', async (req, res)=>{
+            const Assignment = req.body;
+            const sendAssignment = await AssignmentCollection.insertOne(Assignment)
+
+            res.json(sendAssignment)
+        });
+
+
+        app.get('/Assignment', async (req, res)=>{
+            const Assignment = AssignmentCollection.find({});
+            const allAssignment = await Assignment.toArray();
+
+            res.send(allAssignment);
+        });
+
+        app.put('/Assignment/:id', async (req, res)=>{
+            const marksBody = req.body;
+            const message = marksBody.message;
+            const marksGet = marksBody.marks;
+            // -----------------------------
+            const marks = marksGet;
+            const id = req.params.id;
+            // -----------------------
+            const filter = {_id: new objectId(id)};
+            const option = { upsert: true};
+            const sendData = {
+                $set: {
+                    message: message,
+                    marks: marks
+                },
+            };
+            const result = await AssignmentCollection.updateOne(filter, sendData, option);
+            res.json(result);
+        });
+
+
+// Student Invoice
+        // Student Invoice
+        app.post('/StudentsInvoice', async (req, res)=>{
+            const StudentsInvoice = req.body;
+            const sendInvoice = await StudentsInvoiceCollection.insertOne(StudentsInvoice);
+
+            res.json(sendInvoice)
+        });
+        app.get('/StudentsInvoice', async (req, res)=>{
+            const StudentsInvoice = StudentsInvoiceCollection.find({});
+            const allStuInvoice = await StudentsInvoice.toArray();
+
+            res.send(allStuInvoice);
+        });
+
+
+           
+// Student Question!
+        // Student Question!
+        app.post('/stuQuestion', async (req, res)=>{
+            const stuQuestion = req.body;
+            const sendStuQuestion = await stuQuestionCollection.insertOne(stuQuestion);
+
+            res.json(sendStuQuestion)
+        });
+        app.get('/stuQuestion', async (req, res)=>{
+            const stuQuestion = stuQuestionCollection.find({});
+            const allStuQuestion = await stuQuestion.toArray();
+
+            res.send(allStuQuestion);
+        });
+        app.delete('/stuQuestion/:id', async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id: new objectId(id)}
+
+            const stuQuestionDelete = await stuQuestionCollection.deleteOne(query);
+
+            res.json(stuQuestionDelete);
+        });
+
+        app.put('/stuQuestion/:id', async (req, res)=>{
+            const answerGet = req.body;
+            const answer = answerGet.answer;
+            const id  = req.params.id;
+            const filter = {_id: new objectId(id)};
+            const option = { upsert: true };
+            const answerSend = {
+                $set: {
+                    answer: answer
+                }
+            };
+            const result = await stuQuestionCollection.updateOne(filter, answerSend, option)
+
+            res.json(result)
+        });
+
+// QuizMarks upload
+        // QuizMarks upload
+
+        app.get('/QuizMarks', async (req, res)=>{
+            const QuizMarks = QuizMarksCollection.find({});
+            const allQuizMarks = await QuizMarks.toArray();
+
+            res.send(allQuizMarks)
+        });
+
+        app.post('/QuizMarks', async (req, res)=>{
+            const QuizMarks = req.body;
+            const sendQuizMarks = await QuizMarksCollection.insertOne(QuizMarks);
+
+            res.json(sendQuizMarks)
+        });
+
+
+// Courses202205
+        // Courses202205
+        app.get('/Courses202205', async (req, res)=>{
+            const Courses202205 = Courses202205Collection.find({});
+            const stuCourses202205 = await Courses202205.toArray();
+
+            res.json(stuCourses202205);
+        });   
+
+// classBrief
+        // classBrief
+        app.get('/classBrief', async (req, res)=>{
+            const classBrief = classBriefCollection.find({});
+            const classBriefAll = await classBrief.toArray();
+
+            res.json(classBriefAll);
+        });
+
+        app.put('/classBrief/:courseCode', async (req, res)=>{
+            const classBriefBody = req.body;
+            const class_Brief_Title = classBriefBody.class_Brief_Title;
+            const class_Brief = classBriefBody.class_Brief;
+            // --------------------------------------
+            
+            // filter process 
+            const id = req.params.courseCode;
+            const CourseCode = Number(id);
+            const filter = {course_code: CourseCode};
+            const option = { upsert: true };
+            // --------------------------------------
+            
+            // sending Data 
+            const sendData = {
+                $set: {
+                    class_Brief_Title: class_Brief_Title,
+                    class_Brief: class_Brief
+                },
+            };
+            const result = await classBriefCollection.updateOne(filter, sendData, option);
+            // ------------------
+
+      
+        res.json(result);
+    } );
 
 
   } finally {
