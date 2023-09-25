@@ -35,6 +35,7 @@ async function run() {
         const userCollection = databseCollection.collection('user');
         const coursesCollection = databseCollection.collection('Courses');
         const servicesCollection = databseCollection.collection('Services');  
+        const coursesTemplateCollection = databseCollection.collection('CoursesTemplate');
 
 
 // USER!
@@ -94,6 +95,25 @@ async function run() {
         });
 
 
+// CoursesTemplate
+        // CoursesTemplate
+        app.get('/CoursesTemplate', async (req, res)=>{
+            const CoursesTemplate = coursesTemplateCollection.find({});
+            const allCoursesTemplate = await CoursesTemplate.toArray();
+
+            res.send(allCoursesTemplate);
+        });
+
+        app.get('/CoursesTemplate/:id', async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id: new objectId(id)};
+
+            const CoursesTem = await coursesTemplateCollection.findOne(query);
+            res.json(CoursesTem)
+        });
+
+
+        
   } finally {
     // await client.close();
   }
