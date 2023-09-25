@@ -70,6 +70,23 @@ async function run() {
             res.send(allUser);
         });
 
+        app.get('/users/:email', async(req, res) =>{
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+
+            let isStudent = false;
+            let isAdmin = false;
+            if(user?.role === 'admin'){
+                isAdmin = true;
+            }
+            if(user?.userRoll === 'student'){
+                isStudent = true;
+            }
+            res.json({admin: isAdmin, student: isStudent});
+        });
+
+        
 
 // COURSES!
        // COURSES!
