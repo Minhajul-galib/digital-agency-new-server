@@ -27,7 +27,36 @@ const client = new MongoClient(uri, {
 });
 app.get('/', async (req, res)=>{
     res.send('Show My code it is running')
-})
+});
+
+
+async function verifyToken(req, res, next) {
+    if(req.headers?.authorization?.startsWith('Bearer ')){
+        const token = req.headers.authorization.split(' ')[1];
+        try{
+            
+            const decodedUser = await admin.auth().verifyIdToken(token);
+
+            const getEmail = req.body?.userEmail;
+
+             
+            if (getEmail == decodedUser.email) {
+                // console.log(decodedUser.email);
+                requesterEmail = decodedUser.email
+                console.log(requesterEmail);
+            }
+            
+
+        }
+        catch{
+
+        }
+    }
+    next();
+}
+
+
+
 async function run() {
   try {
     
@@ -52,6 +81,8 @@ async function run() {
         const QuizMarksCollection = databseCollection.collection('QuizMarks');
         const Courses202205Collection = databseCollection.collection('Courses202205');
         const classBriefCollection = databseCollection.collection('classBrief');
+        const AddToCartCollection = database.collection('AddTo_Cart');
+
 
 // USER!
         // USER!
@@ -86,7 +117,58 @@ async function run() {
             res.json({admin: isAdmin, student: isStudent});
         });
 
+        app.put('/users/admin', verifyToken, async(req, res)=>{
+            const sendingEmail = req.body?.email;
+           
+
+            if(requesterEmail){
+                const requesterAccount = await userCollection.findOne({email: requesterEmail});
+                if(requesterAccount.role === 'admin'){
+                    
+                    // const filter = { email: user.email };
+                    const filter = { email: sendingEmail };
+                    const updateDoc = { $set: {role: 'admin'} };
+                    const result = await userCollection.updateOne(filter, updateDoc);
+
+                    res.json(result);
+                }
+            }
+            else{
+                res.status(403).json({ message: 'You do not have permission to do this'})
+            }
+            
+        });
+
         
+        app.put('/users/student', verifyToken, async(req, res)=>{
+            const studentEmail = req.body?.student;
+
+    
+            if(requesterEmail){
+                const requesterAccount = await userCollection.findOne({email: requesterEmail});
+                if(requesterAccount.role === 'admin'){
+                    
+                    const filter = { email: studentEmail };
+
+                    const options = { upsert: true };
+                    const updateDoc = {
+                        $set: {
+                            userRoll: 'student'
+                        },
+                      };
+
+                    const result = await userCollection.updateOne(filter, updateDoc, options);
+
+                    res.json(result);
+                }
+            }
+            else{
+                res.status(403).json({ message: 'You are not admin, you must have permission to do this'})
+            }
+            
+        });
+
+
 
 // COURSES!
        // COURSES!
@@ -528,9 +610,50 @@ async function run() {
             const result = await classBriefCollection.updateOne(filter, sendData, option);
             // ------------------
 
+
       
         res.json(result);
     } );
+
+
+
+            
+// ADD TO CART Setting 
+        // ADD TO CART Setting 
+        app.post('/AddToCart', async (req, res)=>{
+            const addToCart = req.body;
+            const addToCartPost = await AddToCartCollection.insertOne(addToCart);
+
+            res.json(addToCartPost);
+        });
+
+        app.get('/AddToCart', async (req, res)=>{
+            const AddToCart = AddToCartCollection.find({});
+            const allAddToCart = await AddToCart.toArray();
+
+            res.send(allAddToCart);
+        });
+        
+        app.get('/AddToCart/:id', async (req, res)=>{
+            const id = req.params.id;
+            const query =  {_id: new objectId(id)}
+
+            const AddToCartQuery = await AddToCartCollection.findOne(query);
+            res.json(AddToCartQuery);
+        });
+
+
+        // DELETE!
+        app.delete('/AddToCart/:id', async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id: new objectId(id)}
+            
+            
+            const AddToCartDelete = await AddToCartCollection.deleteOne(query);
+            
+            res.json(AddToCartDelete);
+        });
+
 
 
   } finally {
